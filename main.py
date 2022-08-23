@@ -184,7 +184,7 @@ def queryLastItemDate():
         return None
 
 if __name__ == '__main__':
-    # connectWind()
+    connectWind()
     utils.initDB()
     
     updateDates = queryLastItemDate()
