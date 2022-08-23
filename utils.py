@@ -67,11 +67,12 @@ def getlastItemDate(name='nav'):
     lastItem = session.query(table).order_by(table.c.id.desc()).first()
     endDate = None
     if(lastItem!=None):
-        endDate = lastItem.endDate if name != 'tdays' else lastItem.date 
+        endDate = lastItem.endDate if name != 'tdays' else lastItem.date
+        return formateDate(endDate,f='%Y-%m-%d')
     else:
         # endDate = datetime.strptime('2000-01-01','%Y-%m-%d')
-        endDate = 'No Data'
-    return formateDate(endDate,f='%Y-%m-%d')
+        return 'No Data'
+    
 
 def formateDate(date:datetime,f='%Y%m%d'):
     return date.strftime(f)
