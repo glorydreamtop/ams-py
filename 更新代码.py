@@ -33,4 +33,4 @@ if __name__ == '__main__':
         shutil.move(os.path.join(oldPath,file),os.path.join(newPath,file))
     shutil.rmtree(oldPath)
     console.print('[#37E2D5]代码已更新')
-    console.input('[#98c379]按任意键退出代码更新工具......')
+    console.input('[#98c379]按回车键退出代码更新工具......')
