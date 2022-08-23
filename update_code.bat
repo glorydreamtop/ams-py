@@ -1,0 +1,1 @@
+(new-object Net.WebClient).DownloadFile('https://github.com/glorydreamtop/ams-py/archive/refs/heads/main.zip','code.zip')
