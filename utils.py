@@ -51,11 +51,14 @@ def addData(data):
     session.add(data)
     session.commit()
 
-def removeOldData(name='nav',endDate=''):
+def removeOldData(name='nav',startDate='',endDate=''):
     metadata = MetaData()
     table = Table(name,metadata,autoload=True, autoload_with=engine)
-    print(datetime.strptime(endDate,'%Y-%m-%d'))
-    count = session.query(table).filter(table.c.endDate if name != 'tdays' else table.c.date>=datetime.strptime(endDate,'%Y-%m-%d')).delete()
+    s = datetime.strptime(startDate,'%Y-%m-%d')
+    e = datetime.strptime(endDate,'%Y-%m-%d')
+    if(name!='tdays'):
+        count = session.query(table).filter(table.c.endDate>=s & table.c.endDate<=e).delete()
+
     console.print(f'{name}表[#37E2D5]删除{count}条数据')
     session.commit()
 
@@ -91,7 +94,7 @@ def getLastFriday():
 def getYearFristDay(date):
     return formateDate(datetime(datetime.strptime(date,'%Y-%m-%d').year, 1, 1))
 
-def getToday(f=None):
+def getToday(f='%Y-%m-%d'):
     return formateDate(today,f)
 
 def getNextDay(date):
