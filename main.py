@@ -183,7 +183,8 @@ def queryLastItemDate():
     console.print('[#5FD068]清除更新起点之后的旧数据...')
     for name in names:
         [startDate,endDate] = tables[name].split(',')
-        removeOldData(name,startDate,endDate)
+        if(name!='tdays'):
+            removeOldData(name,startDate,endDate)
     if('n' not in ask2.strip()):
         return tables
     else:
