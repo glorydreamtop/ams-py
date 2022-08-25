@@ -6,6 +6,8 @@ import utils
 from flask import Flask,request,jsonify
 
 
+sectorcode = '10002'
+
 app = Flask(__name__)
 
 @app.route("/py/getTotalPL",methods=["GET"])
@@ -18,8 +20,8 @@ def getTotalPLApi():
     m = ('平湖1号','平湖2号','平湖3号')
     Penetration = "M" if name in m else "N"
     query = "TotalPL,ExposureRatio,Trading" if Merge == 'N' else 'TotalPL,AssetAccount,Trading'
-    # 分类：自定义分类；视图：分类；汇总方式：单产品汇总；持仓穿透：不穿透
-    data = w.wpf(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Penetration={Penetration};Merge={Merge}").Data
+    # 分类：自定义分类；视图：全部+分类+明细；汇总方式：单产品汇总；持仓穿透：不穿透
+    data = w.wpf(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode={sectorcode};displaymode=4;AmountUnit=0;Penetration={Penetration};Merge={Merge}").Data
     if(data==[['WPF: No Data.']]):
         data = []
     df_ = pd.DataFrame(data=data)
