@@ -1,10 +1,8 @@
-from asyncio.windows_events import NULL
-from cmath import log
 from datetime import datetime,timedelta
 import pandas as pd
 from pandas.core.common import flatten
 import os
-from sqlalchemy import Column, String, create_engine,Integer,VARCHAR,Table,MetaData,inspect
+from sqlalchemy import Column, String, create_engine,Integer,VARCHAR,Table,MetaData
 from sqlalchemy.orm import sessionmaker
 from WindPy import w
 import requests
@@ -57,7 +55,7 @@ def removeOldData(name='nav',startDate='',endDate=''):
     s = datetime.strptime(startDate,'%Y-%m-%d')
     e = datetime.strptime(endDate,'%Y-%m-%d')
     if(name!='tdays'):
-        count = session.query(table).filter(table.c.endDate>=s & table.c.endDate<=e).delete()
+        count = session.query(table).filter((table.c.endDate>=s) & (table.c.endDate<=e)).delete()
 
     console.print(f'{name}表[#37E2D5]删除{count}条数据')
     session.commit()

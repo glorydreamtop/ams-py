@@ -163,7 +163,8 @@ def queryLastItemDate():
     if('n' not in ask1.strip()):
         console.print('\n[#5FD068]OKOK![/] :ok_hand:')
         for name in names:
-            tables[name] = getNextDay(tables[name])
+            [s,e] = tables[name].split(',')
+            tables[name] = f'{getNextDay(s)},{e}'
         return tables
     else:
         idx = 1
@@ -191,7 +192,7 @@ def queryLastItemDate():
         return None
 
 if __name__ == '__main__':
-    # connectWind()
+    connectWind()
     utils.initDB()
     
     updateDates = queryLastItemDate()
