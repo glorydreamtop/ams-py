@@ -192,6 +192,7 @@ def queryLastItemDate():
         return None
 
 if __name__ == '__main__':
+    console.print(f'[#5FD068]这是每周同步一次的数据同步服务，通常你是在你觉得数据要更新的时候（每周一）开着我直到数据爬完')
     connectWind()
     utils.initDB()
     
