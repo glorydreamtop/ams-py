@@ -35,9 +35,12 @@ def getTotalPLApi():
     if(data==[['WPF: No Data.']]):
         data = []
     df_ = pd.DataFrame(data=data)
+    
     if(df_.empty):
         data = []
-    df = df_.T.drop(axis=1,columns=[0])
+    df = df_.T
+    print(df)
+    # df = df_.T.drop(axis=1,columns=[0])
     if(Merge=='C'):
         df = df_.T.drop(axis=1,columns=[0])
     df.insert(0, 'pname', name)
