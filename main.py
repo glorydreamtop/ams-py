@@ -24,10 +24,8 @@ PortfolioNames = ('平湖1号','平湖2号','平湖3号','众诚一号','嘉佑1
 def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
     connectWind()
     # NAVReturnRise_1w,Nav,Nav_Acc  产品净值增长（1周），单位净值，累计净值,区间回报
-    if(isRetry == False):
-        print(f'下面查询{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
-    else:
-        print(f'重试{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
+    if(isRetry != False):
+        console.print(f'[#990000]重试{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
     data = w.wps(name, "Nav,Nav_Acc,Return_w,Return_m,Return_y,Return_std,NetAsset",f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
     if(data == [['WPS: Server no response!.']]):
         robot(f'{name},{endDate},Nav,no response,retry...')
@@ -35,7 +33,10 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
     if(data==[['WPS: No Data.']]):
         robot(f'{name},{endDate},Nav,no data.')
         return None
-    print(data)
+    if(isRetry == False):
+        console.print(f'[#4B8673]已获得{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
+    else:
+        print(f'重试[#4B8673]{endDate}的产品{name}[/]净值增长（1周），单位净值，累计净值数据成功！')
     arr = utils.flat([name,utils.flat(data),startDate,endDate])
     data = pd.DataFrame(data=arr).T
     data.columns=['name','Nav','Nav_Acc','Return_w','Return_m','Return_y','Return_std','NetAsset','startDate','endDate']
@@ -48,8 +49,7 @@ def getTotalPL(name='青诚一号',startDate='20220101',endDate = '20220104',isR
         console.print(f'[#990000]重试{endDate}产品{name}的每个交易日到年初区间盈亏数据')
     connectWind()
     _merge = '按账户汇总'if Merge == 'C' else'按单产品汇总'
-    # 获得所有的区间盈亏和风险净敞口%数据
-    console.print(f'\n[#4B8673]{name}[/]区间盈亏数据，截止日期：[#4B8673]{startDate},{endDate},{_merge}')
+    
     m = ('平湖1号','平湖2号','平湖3号')
     Penetration = "M" if name in m else "N"
     query = "TotalPL,ExposureRatio,Trading" if Merge == 'N' else 'TotalPL,AssetAccount,NetHoldingValue,Trading'
@@ -61,6 +61,10 @@ def getTotalPL(name='青诚一号',startDate='20220101',endDate = '20220104',isR
     if(data==[['WPF: No Data.']]):
         robot(f'{name},{endDate},totalPL,no data.')
         return None
+    # 获得所有的区间盈亏和风险净敞口%数据
+    if(isRetry != False):
+        console.print(f'[#990000]重试{endDate}产品{name}数据成功！')
+    console.print(f'\n已获得[#4B8673]{name}[/]区间盈亏数据，截止日期：[#4B8673]{startDate},{endDate},{_merge}')
     df_ = pd.DataFrame(data=data)
     if(df_.empty):
         robot(f'{name},{endDate},totalPL,is empty.')
