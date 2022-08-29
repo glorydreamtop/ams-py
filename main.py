@@ -94,6 +94,7 @@ def nav(startDate,endDate):
 def totalPL(startDate,endDate,year=False):
     dates = getTDays(startDate,endDate)
     yearFirstDay = getYearFristDay(date) if year == True else '2020-01-01'
+    console.print(f'yearFirstDay is {yearFirstDay}')
     for date in dates:
         dataframes = []
         for name in PortfolioNames:
@@ -107,6 +108,7 @@ def totalPL(startDate,endDate,year=False):
 def totalPLAcc(startDate,endDate,year=False):
     dates = getTDays(startDate,endDate)
     yearFirstDay = getYearFristDay(date) if year == True else '2020-01-01'
+    console.print(f'yearFirstDay is {yearFirstDay}')
     names = ('分策略_嘉佑一号',)
     for date in dates:
         dataframes = []
@@ -195,7 +197,7 @@ def queryLastItemDate():
 
 if __name__ == '__main__':
     console.print(f'[#5FD068]这是每周同步一次的数据同步服务，通常你是在你觉得数据要更新的时候（每周一）开着我直到数据爬完')
-    # connectWind()
+    connectWind()
     utils.initDB()
     
     updateDates = queryLastItemDate()
