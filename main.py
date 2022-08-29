@@ -103,7 +103,7 @@ def totalPL(startDate,endDate,year=False):
         if all(i is None for i in dataframes):
             continue
         res = pd.concat(dataframes)
-        res.to_sql('totalpl' if year == True else 'totalpl_year', getEngine(),if_exists='append',index=False)
+        res.to_sql('totalpl_year' if year == True else 'totalpl', getEngine(),if_exists='append',index=False)
 
 def totalPLAcc(startDate,endDate,year=False):
     dates = getTDays(startDate,endDate)
