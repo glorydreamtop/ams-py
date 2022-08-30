@@ -90,7 +90,7 @@ def getLastFriday():
     return formateDate(today - timedelta(days=weekday + 3))
 
 def getYearFristDay(date):
-    return formateDate(datetime(datetime.strptime(date,'%Y-%m-%d').year, 1, 1))
+    return formateDate(datetime(datetime.strptime(date,'%Y%m%d').year, 1, 1))
 
 def getToday(f='%Y-%m-%d'):
     return formateDate(today,f)
