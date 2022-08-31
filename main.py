@@ -1,12 +1,16 @@
+from ast import arg
 from datetime import datetime, timedelta
 from time import sleep
 from WindPy import w
 import pandas as pd
 import utils
-from utils import getEngine, getNextDay,getTDays, getToday, getYearFristDay, getlastItemDate, removeOldData, robot
+from utils import formateDate, getEngine, getNextDay, getSession,getTDays, getToday, getYearFristDay, getlastItemDate, noDataLog, removeOldData, robot
 from rich.console import Console
 from rich.table import Table,box
 from rich.prompt import Prompt
+from threading import Thread
+from concurrent.futures import ProcessPoolExecutor
+from sqlalchemy import Table as SQL_Table,MetaData
 
 console = Console(color_system="256")
 
@@ -32,6 +36,7 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
         return getNav(name,startDate,endDate,isRetry=True)
     if(data==[['WPS: No Data.']]):
         robot(f'{name},{endDate},Nav,no data.')
+        noDataLog(tablename='nav',pname=name,startDate=startDate,endDate=endDate)
         return None
     if(isRetry == False):
         console.print(f'[#4B8673]已获得{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
@@ -44,7 +49,7 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
         return None
     return data
 
-def getTotalPL(name='青诚一号',startDate='20220101',endDate = '20220104',isRetry=False,Merge='N'):
+def getTotalPL(name='青诚一号',startDate='20220101',endDate = '20220104',isRetry=False,Merge='N',year=False):
     if(isRetry != False):
         console.print(f'[#fa2832]重试{endDate}产品{name}的每个交易日到年初区间盈亏数据')
     connectWind()
@@ -56,14 +61,17 @@ def getTotalPL(name='青诚一号',startDate='20220101',endDate = '20220104',isR
     s_query = f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Penetration={Penetration};Merge={Merge}"
     # 分类：自定义分类；视图：分类；汇总方式：单产品汇总；持仓穿透：不穿透
     data = w.wpf(name, query,s_query).Data
-    if(isRetry != False):
-        print(data)
     if(data==[['WPF_New: Server no response!.']]):
         robot(f'{name},{endDate},totalPL,no response,retry...')
-        return getTotalPL(name=name,startDate=startDate,endDate=endDate,isRetry=True,Merge=Merge)
+        return getTotalPL(name=name,startDate=startDate,endDate=endDate,isRetry=True,Merge=Merge,year=year)
     if(data==[['WPF: No Data.']]):
         print(name,query,s_query)
-        robot(f'{name},{endDate},totalPL,no data.')
+        if(Merge=='N'):
+            noDataLog(tablename='totalpl_year' if year == True else 'totalpl',pname=name,startDate=startDate,endDate=endDate)
+            robot(f'{name},{endDate},totalPL,no data.')
+        if(Merge=='C'):
+            noDataLog(tablename='totalplAcc_year' if year == True else 'totalplAcc',pname=name,startDate=startDate,endDate=endDate)
+            robot(f'{name},{endDate},totalPLAcc,no data.')
         return None
         # return getTotalPL(name=name,startDate=startDate,endDate=endDate,isRetry=True,Merge=Merge)
     # 获得所有的区间盈亏和风险净敞口%数据
@@ -102,32 +110,51 @@ def nav(startDate,endDate):
 
 def totalPL(startDate,endDate,year=False):
     dates = getTDays(startDate,endDate)
-    for date in dates:
-        yearFirstDay = getYearFristDay(date) if year == True else '20200101'
-        console.print(f'yearFirstDay is {yearFirstDay}')
-        dataframes = []
-        for name in PortfolioNames:
-            d = getTotalPL(name=name,startDate=yearFirstDay,endDate=date)
-            dataframes.append(d)
-        if all(i is None for i in dataframes):
-            continue
-        res = pd.concat(dataframes)
-        res.to_sql('totalpl_year' if year == True else 'totalpl', getEngine(),if_exists='append',index=False)
+    dates1 = []
+    dates2 = []
+    for index,date in enumerate(dates):
+        if(index%2==0):
+            dates1.append(date)
+        else:
+            dates2.append(date)
+    pool = ProcessPoolExecutor(max_workers=2)
+    pool.map(query_totalPL,[(dates1,year,'N',PortfolioNames),(dates2,year,'N',PortfolioNames)])
 
-def totalPLAcc(startDate,endDate,year=False):
-    dates = getTDays(startDate,endDate)
-    names = ('分策略_嘉佑一号',)
+def query_totalPL(params):
+    utils.initDB()
+    dates = params[0]
+    year = params[1]
+    Merge = params[2]
+    names = params[3]
     for date in dates:
         yearFirstDay = getYearFristDay(date) if year == True else '20200101'
         console.print(f'yearFirstDay is {yearFirstDay}')
         dataframes = []
         for name in names:
-            d = getTotalPL(name=name,startDate=yearFirstDay,endDate=date,Merge='C')
+            d = getTotalPL(name=name,startDate=yearFirstDay,endDate=date,isRetry=False,Merge=Merge,year=year)
             dataframes.append(d)
         if all(i is None for i in dataframes):
             continue
         res = pd.concat(dataframes)
-        res.to_sql('totalplacc_year'if year == True else 'totalplacc', getEngine(),if_exists='append',index=False)
+        if(Merge=='N'):
+            tablename = 'totalpl_year' if year == True else 'totalpl'
+        else:
+            tablename = 'totalplacc_year' if year == True else 'totalplacc'
+        res.to_sql(tablename, getEngine(),if_exists='append',index=False)
+        console.print(f'{date}数据已写入[#4B8673]{tablename}[/]表')
+
+def totalPLAcc(startDate,endDate,year=False):
+    names = ('分策略_嘉佑一号','众诚一号')
+    dates = getTDays(startDate,endDate)
+    dates1 = []
+    dates2 = []
+    for index,date in enumerate(dates):
+        if(index%2==0):
+            dates1.append(date)
+        else:
+            dates2.append(date)
+    pool = ProcessPoolExecutor(max_workers=2)
+    pool.map(query_totalPL,[(dates1,year,'C',names),(dates2,year,'C',names)])
     
 def saveTDays():
     connectWind()
@@ -137,20 +164,37 @@ def saveTDays():
         d.columns = ['date']
         d.to_sql('tdays', getEngine(),if_exists='append',index=False)
 
+def fixData():
+    metadata = MetaData()
+    table = SQL_Table('nodata',metadata,autoload=True, autoload_with=getEngine())
+    items = getSession().query(table).all()
+    for item in items:
+        console.print(f'{formateDate(item.endDate)}，{item.pname}数据的{item.tablename}正在补入')
+        if('totalpl' in item.tablename):
+            Merge='C' if'Acc' in item.tablename else 'N'
+            d = getTotalPL(name=item.pname,startDate=formateDate(item.startDate),endDate=formateDate(item.endDate),isRetry=False,Merge=Merge,year=True)
+        if('nav' in item.tablename):
+            d = getNav(name=item.pname,startDate=formateDate(item.startDate),endDate=formateDate(item.endDate),isRetry=False)
+        if(d is None):
+            continue
+        d.to_sql(item.tablename, getEngine(),if_exists='append',index=False)
+        console.print(f'{formateDate(item.endDate)}数据已[#fa2832]补写入[/][#4B8673]{item.tablename}[/]表')
+        getSession().query(table).filter((table.c.endDate==item.endDate) & (table.c.pname==item.pname)&(table.c.tablename==item.tablename)).delete()
+        getSession().commit()
 
 def queryLastItemDate():
     tables = {
         "nav": '',
-        "totalpl": '',
+        # "totalpl": '',
         "totalpl_year": '',
-        'totalplAcc':'',
+        # 'totalplAcc':'',
         "totalplAcc_year":'',
         "tdays":''
     }
     tableNameCNMap = {
         'nav':"净值表",
-        'totalpl':"区间盈亏单产品汇总表",
-        'totalplAcc':"区间盈亏账户汇总表",
+        # 'totalpl':"区间盈亏单产品汇总表",
+        # 'totalplAcc':"区间盈亏账户汇总表",
         'totalpl_year':"区间盈亏单产品汇总表[年度]",
         'totalplAcc_year':"区间盈亏账户汇总表[年度]",
         'tdays':"交易日表"
@@ -209,35 +253,35 @@ if __name__ == '__main__':
     connectWind()
     utils.initDB()
     
-    # updateDates = queryLastItemDate()
-    # now = datetime.now()
-    # today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second, microseconds=now.microsecond)
-    # if(updateDates!=None):
-    #     saveTDays()
-    #     if(datetime.strptime(updateDates['nav'].split(',')[0],'%Y-%m-%d') >= today):
-    #         console.print('[#FF5B00]净值表无需更新')
-    #     else:
-    #         [startDate,endDate] = updateDates['nav'].split(',')
-    #         nav(startDate,endDate)
-    #     if(datetime.strptime(updateDates['totalpl'].split(',')[0],'%Y-%m-%d') >= today):
-    #         console.print('[#FF5B00]区间盈亏单产品汇总表无需更新')
-    #     else:
-    #         [startDate,endDate] = updateDates['totalpl'].split(',')
-    #         totalPL(startDate,endDate)
-    #     if(datetime.strptime(updateDates['totalplAcc'].split(',')[0],'%Y-%m-%d') >= today):
-    #         console.print('[#FF5B00]区间盈亏账户汇总表无需更新')
-    #     else:
-    #         [startDate,endDate] = updateDates['totalplAcc'].split(',')
-    #         totalPLAcc(startDate,endDate)
-    #     if(datetime.strptime(updateDates['totalpl_year'].split(',')[0],'%Y-%m-%d') >= today):
-    #         console.print('[#FF5B00]区间盈亏单产品汇总表[年度]无需更新')
-    #     else:
-    #         [startDate,endDate] = updateDates['totalpl'].split(',')
-    #         totalPL(startDate,endDate,year=True)
-    #     if(datetime.strptime(updateDates['totalplAcc_year'].split(',')[0],'%Y-%m-%d') >= today):
-    #         console.print('[#FF5B00]区间盈亏账户汇总表[年度]无需更新')
-    #     else:
-    #         [startDate,endDate] = updateDates['totalplAcc'].split(',')
-    #         totalPLAcc(startDate,endDate,year=True)
-    # totalPL('2022-08-22','2022-08-29')
-    totalPL('2022-02-10','2022-08-29',year=True)
+    updateDates = queryLastItemDate()
+    now = datetime.now()
+    today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second, microseconds=now.microsecond)
+    if(updateDates!=None):
+        saveTDays()
+        if(datetime.strptime(updateDates['nav'].split(',')[0],'%Y-%m-%d') >= today):
+            console.print('[#FF5B00]净值表无需更新')
+        else:
+            [startDate,endDate] = updateDates['nav'].split(',')
+            nav(startDate,endDate)
+        # if(datetime.strptime(updateDates['totalpl'].split(',')[0],'%Y-%m-%d') >= today):
+        #     console.print('[#FF5B00]区间盈亏单产品汇总表无需更新')
+        # else:
+        #     [startDate,endDate] = updateDates['totalpl'].split(',')
+        #     totalPL(startDate,endDate)
+        # if(datetime.strptime(updateDates['totalplAcc'].split(',')[0],'%Y-%m-%d') >= today):
+        #     console.print('[#FF5B00]区间盈亏账户汇总表无需更新')
+        # else:
+        #     [startDate,endDate] = updateDates['totalplAcc'].split(',')
+        #     totalPLAcc(startDate,endDate)
+        if(datetime.strptime(updateDates['totalpl_year'].split(',')[0],'%Y-%m-%d') >= today):
+            console.print('[#FF5B00]区间盈亏单产品汇总表[年度]无需更新')
+        else:
+            [startDate,endDate] = updateDates['totalpl'].split(',')
+            totalPL(startDate,endDate,year=True)
+        if(datetime.strptime(updateDates['totalplAcc_year'].split(',')[0],'%Y-%m-%d') >= today):
+            console.print('[#FF5B00]区间盈亏账户汇总表[年度]无需更新')
+        else:
+            [startDate,endDate] = updateDates['totalplAcc'].split(',')
+            totalPLAcc(startDate,endDate,year=True)
+        console.print('[#FF5B00]开始补充遗漏数据')    
+        fixData()

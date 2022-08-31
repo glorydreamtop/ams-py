@@ -2,12 +2,14 @@ from datetime import datetime,timedelta
 import pandas as pd
 from pandas.core.common import flatten
 import os
-from sqlalchemy import Column, String, create_engine,Integer,VARCHAR,Table,MetaData
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, String, create_engine,Integer,Date,Table,MetaData
+from sqlalchemy.orm import sessionmaker,declarative_base
 from WindPy import w
 import requests
 import json
 from rich.console import Console
+
+Base = declarative_base()
 
 console = Console(color_system="256")
 
@@ -35,6 +37,9 @@ engine = None;
 
 def getEngine():
     return engine
+
+def getSession():
+    return session
 
 def initDB():
     global engine
@@ -73,7 +78,23 @@ def getlastItemDate(name='nav'):
     else:
         # endDate = datetime.strptime('2000-01-01','%Y-%m-%d')
         return 'No Data'
-    
+
+class NoData(Base):
+    __tablename__ = 'nodata'  
+    id = Column(Integer, primary_key=True)  
+    pname = Column(String(20))  
+    tablename = Column(String(20)) 
+    startDate = Column(Date) 
+    endDate = Column(Date) 
+
+def noDataLog(tablename,pname,startDate,endDate):
+    metadata = MetaData()
+    table = Table('nodata',metadata,autoload=True, autoload_with=getEngine())
+    items = session.query(table).filter((table.c.endDate==datetime.strptime(endDate,'%Y%m%d')) & (table.c.pname==pname)&(table.c.tablename==tablename)).all()
+    if(len(items)>0):
+        return
+    session.add(NoData(tablename=tablename,pname=pname,startDate=startDate,endDate=endDate))
+    session.commit()
 
 def formateDate(date:datetime,f='%Y%m%d'):
     return date.strftime(f)
