@@ -280,12 +280,12 @@ if __name__ == '__main__':
         if(datetime.strptime(updateDates['totalpl_year'].split(',')[0],'%Y-%m-%d') >= today):
             console.print('[#FF5B00]区间盈亏单产品汇总表[年度]无需更新')
         else:
-            [startDate,endDate] = updateDates['totalpl'].split(',')
+            [startDate,endDate] = updateDates['totalpl_year'].split(',')
             totalPL(startDate,endDate,year=True)
         if(datetime.strptime(updateDates['totalplAcc_year'].split(',')[0],'%Y-%m-%d') >= today):
             console.print('[#FF5B00]区间盈亏账户汇总表[年度]无需更新')
         else:
-            [startDate,endDate] = updateDates['totalplAcc'].split(',')
+            [startDate,endDate] = updateDates['totalplAcc_year'].split(',')
             totalPLAcc(startDate,endDate,year=True)
         console.print('[#FF5B00]开始补充遗漏数据')    
         fixData()
