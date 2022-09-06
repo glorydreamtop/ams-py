@@ -162,6 +162,10 @@ def saveTDays():
         dates = getTDays()
         d = pd.DataFrame(dates)
         d.columns = ['date']
+        metadata = MetaData()
+        table = SQL_Table('tdays',metadata,autoload=True, autoload_with=getEngine())
+        getSession().query(table).delete()
+        getSession().commit()
         d.to_sql('tdays', getEngine(),if_exists='append',index=False)
 
 def fixData():
