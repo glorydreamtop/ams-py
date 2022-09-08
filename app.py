@@ -3,7 +3,7 @@ from main import connectWind
 from WindPy import w
 import pandas as pd
 import utils
-from utils import getEngine
+from utils import formateDate, getEngine
 from flask import Flask,request,jsonify
 from rich.console import Console
 
@@ -56,6 +56,33 @@ def getTotalPLApi():
             "startDate":request.args.get('startDate'),
             "endDate":request.args.get('endDate'),
             'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getWSD",methods=["GET"])
+def getWSD():
+    names = request.args.get('names')
+    # startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
+    # endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    console.print(f'{names},{startDate},{endDate}')
+    connectWind()
+    data = w.wsd(names, "close", startDate, endDate, "Currency=CNY")
+    print(data)
+    l = data.Data
+    l.insert(0,list(map(lambda x:formateDate(x,'%Y-%m-%d'),data.Times)))
+    l = pd.DataFrame(data=l).T
+    l.columns = ['date',*names.split(',')]
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":l.to_dict(orient="records"),
+            "startDate":request.args.get('startDate'),
+            "endDate":request.args.get('endDate'),
         },
         "code":200,
         "flag":True

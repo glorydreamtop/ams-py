@@ -94,6 +94,25 @@ def getTotalPL(name='青诚一号',startDate='20220101',endDate = '20220104',isR
     
     return res
 
+def getWSD(names,startDate = '20220722',endDate = '20220722',isRetry=False):
+    connectWind()
+    data = w.wsd(names, "close", "2022-01-01", "2022-09-06", "Currency=CNY")
+    if(data == [['WSD: Server no response!.']]):
+        robot(f'{names},WSD,no response,retry...')
+        return getWSD(names,startDate,endDate,isRetry=True)
+    if(data==[['WSD: No Data.']]):
+        robot(f'{names},WSD,no data.')
+        return None
+    if(isRetry == False):
+        console.print(f'[#4B8673]已获得{names}，{startDate}到{endDate}的数据')
+    else:
+        print(f'重试[#4B8673]{names}，{startDate}到{endDate}的数据成功！')
+    arr = utils.flat([name,utils.flat(data),startDate,endDate])
+    data = pd.DataFrame(data=arr).T
+    data.columns=['name','endDate']
+    if(data.empty):
+        return None
+    return data
 
 def nav(startDate,endDate):
     dates = getTDays(startDate,endDate)
@@ -252,6 +271,8 @@ def queryLastItemDate():
     else:
         return None
 
+
+
 if __name__ == '__main__':
     console.print(f'[#5FD068]这是每周同步一次的数据同步服务，通常你是在你觉得数据要更新的时候（每周一）开着我直到数据爬完')
     connectWind()
@@ -287,5 +308,5 @@ if __name__ == '__main__':
         else:
             [startDate,endDate] = updateDates['totalplAcc_year'].split(',')
             totalPLAcc(startDate,endDate,year=True)
-        console.print('[#FF5B00]开始补充遗漏数据')    
-        fixData()
+        # console.print('[#FF5B00]开始补充遗漏数据') 
+        # fixData()
