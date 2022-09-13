@@ -124,7 +124,7 @@ def nav(startDate,endDate):
         if all(i is None for i in dataframes):
             continue
         res = pd.concat(dataframes)
-        print(res)
+        # print(res)
         res.to_sql('nav', getEngine(),if_exists='append',index=False)
 
 def totalPL(startDate,endDate,year=False):
@@ -278,35 +278,38 @@ if __name__ == '__main__':
     connectWind()
     utils.initDB()
     
-    updateDates = queryLastItemDate()
-    now = datetime.now()
-    today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second, microseconds=now.microsecond)
-    if(updateDates!=None):
-        saveTDays()
-        if(datetime.strptime(updateDates['nav'].split(',')[0],'%Y-%m-%d') >= today):
-            console.print('[#FF5B00]净值表无需更新')
-        else:
-            [startDate,endDate] = updateDates['nav'].split(',')
-            nav(startDate,endDate)
-        # if(datetime.strptime(updateDates['totalpl'].split(',')[0],'%Y-%m-%d') >= today):
-        #     console.print('[#FF5B00]区间盈亏单产品汇总表无需更新')
-        # else:
-        #     [startDate,endDate] = updateDates['totalpl'].split(',')
-        #     totalPL(startDate,endDate)
-        # if(datetime.strptime(updateDates['totalplAcc'].split(',')[0],'%Y-%m-%d') >= today):
-        #     console.print('[#FF5B00]区间盈亏账户汇总表无需更新')
-        # else:
-        #     [startDate,endDate] = updateDates['totalplAcc'].split(',')
-        #     totalPLAcc(startDate,endDate)
-        if(datetime.strptime(updateDates['totalpl_year'].split(',')[0],'%Y-%m-%d') >= today):
-            console.print('[#FF5B00]区间盈亏单产品汇总表[年度]无需更新')
-        else:
-            [startDate,endDate] = updateDates['totalpl_year'].split(',')
-            totalPL(startDate,endDate,year=True)
-        if(datetime.strptime(updateDates['totalplAcc_year'].split(',')[0],'%Y-%m-%d') >= today):
-            console.print('[#FF5B00]区间盈亏账户汇总表[年度]无需更新')
-        else:
-            [startDate,endDate] = updateDates['totalplAcc_year'].split(',')
-            totalPLAcc(startDate,endDate,year=True)
-        # console.print('[#FF5B00]开始补充遗漏数据') 
-        # fixData()
+    # updateDates = queryLastItemDate()
+    # now = datetime.now()
+    # today = now - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second, microseconds=now.microsecond)
+    # if(updateDates!=None):
+    #     saveTDays()
+    #     if(datetime.strptime(updateDates['nav'].split(',')[0],'%Y-%m-%d') >= today):
+    #         console.print('[#FF5B00]净值表无需更新')
+    #     else:
+    #         [startDate,endDate] = updateDates['nav'].split(',')
+    #         nav(startDate,endDate)
+    #     # if(datetime.strptime(updateDates['totalpl'].split(',')[0],'%Y-%m-%d') >= today):
+    #     #     console.print('[#FF5B00]区间盈亏单产品汇总表无需更新')
+    #     # else:
+    #     #     [startDate,endDate] = updateDates['totalpl'].split(',')
+    #     #     totalPL(startDate,endDate)
+    #     # if(datetime.strptime(updateDates['totalplAcc'].split(',')[0],'%Y-%m-%d') >= today):
+    #     #     console.print('[#FF5B00]区间盈亏账户汇总表无需更新')
+    #     # else:
+    #     #     [startDate,endDate] = updateDates['totalplAcc'].split(',')
+    #     #     totalPLAcc(startDate,endDate)
+    #     if(datetime.strptime(updateDates['totalpl_year'].split(',')[0],'%Y-%m-%d') >= today):
+    #         console.print('[#FF5B00]区间盈亏单产品汇总表[年度]无需更新')
+    #     else:
+    #         [startDate,endDate] = updateDates['totalpl_year'].split(',')
+    #         totalPL(startDate,endDate,year=True)
+    #     if(datetime.strptime(updateDates['totalplAcc_year'].split(',')[0],'%Y-%m-%d') >= today):
+    #         console.print('[#FF5B00]区间盈亏账户汇总表[年度]无需更新')
+    #     else:
+    #         [startDate,endDate] = updateDates['totalplAcc_year'].split(',')
+    #         totalPLAcc(startDate,endDate,year=True)
+    #     # console.print('[#FF5B00]开始补充遗漏数据') 
+    #     # fixData()
+    saveTDays()
+    totalPL(startDate='20220825',endDate='20220909',year=True)
+    nav(startDate='20220104',endDate='20220909')
