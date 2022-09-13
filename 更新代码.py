@@ -9,7 +9,7 @@ console = Console(color_system="256")
 
 def get_data():
     with console.status('[#37E2D5]更新代码中...') as s:
-        url = "https://github.com/glorydreamtop/ams-py/archive/refs/heads/main.zip"
+        url = "https://gitee.com/glorydream/ams-py/repository/archive/main.zip"
         response = requests.get(url)
     return url, response.content
  
