@@ -311,5 +311,6 @@ if __name__ == '__main__':
     #     # console.print('[#FF5B00]开始补充遗漏数据') 
     #     # fixData()
     saveTDays()
-    totalPL(startDate='20220825',endDate='20220909',year=True)
-    nav(startDate='20220104',endDate='20220909')
+    totalPL(startDate='20220905',endDate='20220909',year=True)
+    totalPLAcc(startDate='20220819',endDate='20220909',year=True)
+    nav(startDate='20220905',endDate='20220909')
