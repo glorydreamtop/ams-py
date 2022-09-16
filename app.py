@@ -29,6 +29,7 @@ def getTotalPLApi():
     m = ('平湖1号','平湖2号','平湖3号')
     Penetration = "M" if name in m else "N"
     query = "TotalPL,ExposureRatio,Trading" if Merge == 'N' else 'TotalPL,AssetAccount,Trading'
+    console.print(f'实时查询{name},{query}数据，{startDate}到{endDate}')
     # 分类：自定义分类；视图：全部+分类+明细；汇总方式：单产品汇总；持仓穿透：不穿透
     data = w.wpf(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Penetration={Penetration};Merge={Merge}").Data
     

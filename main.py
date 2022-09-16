@@ -163,7 +163,7 @@ def query_totalPL(params):
         console.print(f'{date}数据已写入[#4B8673]{tablename}[/]表')
 
 def totalPLAcc(startDate,endDate,year=False):
-    names = ('分策略_嘉佑一号','众诚一号')
+    names = ('分策略_嘉佑一号','众诚一号','分策略_嘉佑一号2','分策略_平湖2号')
     dates = getTDays(startDate,endDate)
     dates1 = []
     dates2 = []
@@ -312,5 +312,5 @@ if __name__ == '__main__':
     #     # fixData()
     saveTDays()
     totalPL(startDate='20220905',endDate='20220909',year=True)
-    totalPLAcc(startDate='20220819',endDate='20220909',year=True)
+    # totalPLAcc(startDate='20220819',endDate='20220909',year=True)
     nav(startDate='20220905',endDate='20220909')
