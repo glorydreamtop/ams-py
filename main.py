@@ -22,7 +22,7 @@ def connectWind():
             wconnected =  w.isconnected()
         print('Wind服务链接成功' if wconnected==True else 'Wind服务链接失败')
 
-PortfolioNames = ('平湖1号','平湖2号','平湖3号','众诚一号','嘉佑1号','闰诚1号','青诚一号','百川量化一号')
+PortfolioNames = ('平湖1号','平湖2号','平湖3号','众诚一号','嘉佑一号','闰诚1号','青诚一号','百川量化一号')
 
 
 def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
@@ -30,7 +30,7 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
     # NAVReturnRise_1w,Nav,Nav_Acc  产品净值增长（1周），单位净值，累计净值,区间回报
     if(isRetry != False):
         console.print(f'[#fa2832]重试{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
-    data = w.wps(name, "Nav,Nav_Acc,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset",f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
+    data = w.wps(name, "Nav,Nav_Acc,NAVReturnRise_1w,NAVReturnRise_1m,NAVReturnRise_1y,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset",f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
     if(data == [['WPS: Server no response!.']]):
         robot(f'{name},{endDate},Nav,no response,retry...')
         return getNav(name,startDate,endDate,isRetry=True)
@@ -44,7 +44,7 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
         print(f'重试[#4B8673]{endDate}的产品{name}[/]净值增长（1周），单位净值，累计净值数据成功！')
     arr = utils.flat([name,utils.flat(data),startDate,endDate])
     data = pd.DataFrame(data=arr).T
-    data.columns=['name','Nav','Nav_Acc','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
+    data.columns=['name','Nav','Nav_Acc','NAVReturnRise_1w','NAVReturnRise_1m','NAVReturnRise_1q','NAVReturnRise_1y','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
     if(data.empty):
         return None
     return data
@@ -311,6 +311,6 @@ if __name__ == '__main__':
     #     # console.print('[#FF5B00]开始补充遗漏数据') 
     #     # fixData()
     saveTDays()
-    totalPL(startDate='20220905',endDate='20220909',year=True)
+    # totalPL(startDate='20220905',endDate='20220909',year=True)
     # totalPLAcc(startDate='20220819',endDate='20220909',year=True)
-    nav(startDate='20220905',endDate='20220909')
+    nav(startDate='20220101',endDate='20220909')
