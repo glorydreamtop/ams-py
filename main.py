@@ -30,7 +30,7 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
     # NAVReturnRise_1w,Nav,Nav_Acc  产品净值增长（1周），单位净值，累计净值,区间回报
     if(isRetry != False):
         console.print(f'[#fa2832]重试{endDate}的产品{name}净值增长（1周），单位净值，累计净值数据')
-    data = w.wps(name, "Nav,Nav_Acc,NAVReturnRise_1w,NAVReturnRise_1m,NAVReturnRise_1p,NAVReturnRise_1y,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset",f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
+    data = w.wps(name, "Nav,Nav_Acc,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset",f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
     if(data == [['WPS: Server no response!.']]):
         robot(f'{name},{endDate},Nav,no response,retry...')
         return getNav(name,startDate,endDate,isRetry=True)
@@ -44,7 +44,7 @@ def getNav(name,startDate = '20220722',endDate = '20220722',isRetry=False):
         print(f'重试[#4B8673]{endDate}的产品{name}[/]净值增长（1周），单位净值，累计净值数据成功！')
     arr = utils.flat([name,utils.flat(data),startDate,endDate])
     data = pd.DataFrame(data=arr).T
-    data.columns=['name','Nav','Nav_Acc','NAVReturnRise_1w','NAVReturnRise_1m','NAVReturnRise_1p','NAVReturnRise_1y','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
+    data.columns=['name','Nav','Nav_Acc','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
     if(data.empty):
         return None
     return data
