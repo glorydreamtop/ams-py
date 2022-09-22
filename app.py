@@ -75,11 +75,10 @@ def getNavApi():
     arr = utils.flat([name,utils.flat(data),startDate,endDate])
     data = pd.DataFrame(data=arr).T
     data.columns=['name','Nav','Nav_Acc','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
-    res = data.loc[data['trading']!='平衡项']
     resjson = {
         "msg":'查询成功',
         "info":{
-            "list":res.to_dict(orient="records"),
+            "list":data.to_dict(orient="records"),
             "startDate":request.args.get('startDate'),
             "endDate":request.args.get('endDate'),
             'pname':name
