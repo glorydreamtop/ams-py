@@ -65,7 +65,7 @@ def getNavApi():
     connectWind()
     query = "Nav,Nav_Acc,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset"
     console.print(f'实时查询{name},{query}数据，{startDate}到{endDate}')
-    data = w.wps(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Penetration={Penetration};Merge={Merge}").Data
+    data = w.wps(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
     
     if(data==[['WPF: No Data.']]):
         data = []
