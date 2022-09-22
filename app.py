@@ -14,7 +14,6 @@ sectorcode = '1'
 console.print(f'[#5FD068]这是实时数据提取服务，通常你需要经常开着我')
 
 utils.initDB()
-connectWind()
 
 app = Flask(__name__)
 
@@ -24,13 +23,11 @@ def getTotalPLApi():
     startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
     endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
     Merge = request.args.get('merge')
-    console.print(f'{name},{startDate},{endDate},{Merge}')
     connectWind()
     m = ('平湖1号','平湖2号','平湖3号')
     Penetration = "M" if name in m else "N"
     query = "TotalPL,ExposureRatio,Trading" if Merge == 'N' else 'TotalPL,AssetAccount,Trading'
     console.print(f'实时查询{name},{query}数据，{startDate}到{endDate}')
-    # 分类：自定义分类；视图：全部+分类+明细；汇总方式：单产品汇总；持仓穿透：不穿透
     data = w.wpf(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Penetration={Penetration};Merge={Merge}").Data
     
     if(data==[['WPF: No Data.']]):
@@ -47,9 +44,38 @@ def getTotalPLApi():
     df['startDate'] = startDate
     df['endDate'] = endDate
     res = df.loc[df['trading']!='平衡项']
-    # res.to_csv(utils.getCurPath(f'表格{name}.csv'),encoding='utf_8_sig')
-    # res.to_sql('totalpl1', getEngine(),if_exists='append',index=False)
-    # res.to_csv('./data.csv')
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":res.to_dict(orient="records"),
+            "startDate":request.args.get('startDate'),
+            "endDate":request.args.get('endDate'),
+            'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getNav",methods=["GET"])
+def getNavApi():
+    name = request.args.get('name')
+    startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
+    endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
+    connectWind()
+    query = "Nav,Nav_Acc,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset"
+    console.print(f'实时查询{name},{query}数据，{startDate}到{endDate}')
+    data = w.wps(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Penetration={Penetration};Merge={Merge}").Data
+    
+    if(data==[['WPF: No Data.']]):
+        data = []
+    df_ = pd.DataFrame(data=data)
+    if(df_.empty):
+        data = []
+    arr = utils.flat([name,utils.flat(data),startDate,endDate])
+    data = pd.DataFrame(data=arr).T
+    data.columns=['name','Nav','Nav_Acc','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
+    res = data.loc[data['trading']!='平衡项']
     resjson = {
         "msg":'查询成功',
         "info":{
@@ -70,10 +96,9 @@ def getWSD():
     # endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
-    console.print(f'{names},{startDate},{endDate}')
+    console.print(f'实时查询{names}数据，{startDate}到{endDate}')
     connectWind()
     data = w.wsd(names, "close", startDate, endDate, "Currency=CNY")
-    print(data)
     l = data.Data
     l.insert(0,list(map(lambda x:formateDate(x,'%Y-%m-%d'),data.Times)))
     l = pd.DataFrame(data=l).T

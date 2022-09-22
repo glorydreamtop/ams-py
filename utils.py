@@ -119,7 +119,7 @@ def getToday(f='%Y-%m-%d'):
 def getNextDay(date):
     return formateDate(datetime.strptime(date,'%Y-%m-%d')+timedelta(days=1),f='%Y-%m-%d')
 
-def getTDays(startDate="2022-01-01",endDate=getToday("%Y-%m-%d")):
+def getTDays(startDate="2021-12-01",endDate=getToday("%Y-%m-%d")):
     dates = w.tdays(startDate, endDate, '').Data[0]
     return list(map(formateDate,dates))
 
