@@ -17,6 +17,7 @@ utils.initDB()
 connectWind()
 
 app = Flask(__name__)
+m = ('平湖1号','平湖2号','平湖3号')
 
 @app.route("/py/getTotalPL",methods=["GET"])
 def getTotalPLApi():
@@ -25,7 +26,7 @@ def getTotalPLApi():
     endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
     Merge = request.args.get('merge')
     connectWind()
-    m = ('平湖1号','平湖2号','平湖3号')
+    
     Penetration = "M" if name in m else "N"
     query = "TotalPL,ExposureRatio,Trading" if Merge == 'N' else 'TotalPL,AssetAccount,Trading'
     console.print(f'实时查询{name},{query}数据，{startDate}到{endDate}')
@@ -52,6 +53,133 @@ def getTotalPLApi():
             "startDate":request.args.get('startDate'),
             "endDate":request.args.get('endDate'),
             'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getWPF",methods=["GET"])
+def getgetWPFApi():
+    name = request.args.get('name')
+    query = request.args.get('query')
+    view = request.args.get('view')
+    connectWind()
+    data = w.wpf(name, query,view).Data
+    if(data == [['WPF: Server no response!.']]):
+        resjson = {
+        "msg":'请重试',
+        "code":500,
+        "flag":False
+    }
+    if(data==[['WPF: No Data.']]):
+        df = pd.DataFrame(data=[])
+    else:
+        df = pd.DataFrame(data=data).T
+        df = df.drop(axis=1,columns=[0])
+        df.insert(0, 'pname', name)
+        df.columns = ['pname','code','name',*query.split(',')]
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":df.to_dict(orient="records"),
+            'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getWPS",methods=["GET"])
+def getWPSApi():
+    name = request.args.get('name')
+    query = request.args.get('query')
+    view = request.args.get('view')
+    connectWind()
+    data = w.wps(name, query,view).Data
+    if(data == [['WPS: Server no response!.']]):
+        resjson = {
+        "msg":'请重试',
+        "code":500,
+        "flag":False
+    }
+    if(data==[['WPS: No Data.']]):
+        df = pd.DataFrame(data=[])
+    else:
+        df = pd.DataFrame(data=data).T
+        df.insert(0, 'name', name)
+        df.columns = ['name',*query.split(',')]
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":df.to_dict(orient="records"),
+            'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getTdays",methods=["GET"])
+def getTDays():
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    dates = w.tdays(startDate, endDate, '').Data[0]
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":dates,
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getPosition",methods=["GET"])
+def getPositionApi():
+    name = request.args.get('name')
+    endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
+    data = w.wpf(name, "Position,Trading",f"view=AMS;startDate={endDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Merge=N").Data
+    if(data==[['WPF: No Data.']]):
+        data = []
+    df_ = pd.DataFrame(data=data)
+    
+    if(df_.empty):
+        data = []
+    df = df_.T.drop(axis=1,columns=[0])
+    df.insert(0, 'pname', name)
+    df.columns = ['pname','code','name','value','trading']
+    res = df[df['trading'].isin(['股票','期货'])]
+    res['date'] = endDate
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":res.to_dict(orient="records"),
+            "date":request.args.get('endDate'),
+            'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
+@app.route("/py/getWSQ",methods=["GET"])
+def getWSQApi():
+    name = request.args.get('name')
+    query = request.args.get('query')
+    data = w.wsq(name, query)
+    print(data)
+    if(data==[['WPF: No Data.']]):
+        data = []
+    l = data.Data
+    l.insert(0,data.Codes)
+    l = pd.DataFrame(data=l).T
+    l.columns = ['code','value']
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":l.to_dict(orient="records"),
+            "date":request.args.get('endDate'),
         },
         "code":200,
         "flag":True
@@ -90,7 +218,7 @@ def getNavApi():
     return jsonify(resjson)
 
 @app.route("/py/getWSD",methods=["GET"])
-def getWSD():
+def getWSDApi():
     names = request.args.get('names')
     # startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
     # endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
