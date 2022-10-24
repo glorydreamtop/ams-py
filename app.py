@@ -267,7 +267,7 @@ def getWPDApi():
         l.insert(0,list(map(lambda x:formateDate(x,'%Y-%m-%d'),data.Times)))
         df = pd.DataFrame(data=l).T
         df.insert(0, 'productName', name)
-        df.columns = ['date','productName',*query.split(',')]
+        df.columns = ['productName','date',*query.split(',')]
     resjson = {
         "msg":'查询成功',
         "info":{
