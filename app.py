@@ -263,10 +263,11 @@ def getWPDApi():
     if(data==[['WPD: No Data.']]):
         df = pd.DataFrame(data=[])
     else:
-        print(data)
-        df = pd.DataFrame(data=data.Data).T
+        l = data.Data
+        l.insert(0,list(map(lambda x:formateDate(x,'%Y-%m-%d'),data.Times)))
+        df = pd.DataFrame(data=l).T
         df.insert(0, 'productName', name)
-        df.columns = ['productName',*query.split(',')]
+        df.columns = ['date','productName',*query.split(',')]
     resjson = {
         "msg":'查询成功',
         "info":{
