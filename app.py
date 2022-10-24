@@ -163,6 +163,7 @@ def getPositionApi():
     }
     return jsonify(resjson)
 
+# 实时行情
 @app.route("/py/getWSQ",methods=["GET"])
 def getWSQApi():
     name = request.args.get('name')
@@ -217,6 +218,7 @@ def getNavApi():
     }
     return jsonify(resjson)
 
+# 日期序列
 @app.route("/py/getWSD",methods=["GET"])
 def getWSDApi():
     names = request.args.get('names')
@@ -242,3 +244,37 @@ def getWSDApi():
         "flag":True
     }
     return jsonify(resjson)
+
+# 运营报表
+@app.route("/py/getWPD",methods=["GET"])
+def getWPDApi():
+    name = request.args.get('name')
+    query = request.args.get('query')
+    view = request.args.get('view')
+    startDate = request.args.get('startDate')
+    endDate = request.args.get('endDate')
+    connectWind()
+    data = w.wpd(name, query,startDate,endDate,view).Data
+    if(data == [['WPD: Server no response!.']]):
+        resjson = {
+        "msg":'请重试',
+        "code":500,
+        "flag":False
+    }
+    if(data==[['WPD: No Data.']]):
+        df = pd.DataFrame(data=[])
+    else:
+        df = pd.DataFrame(data=data).T
+        df.insert(0, 'productName', name)
+        df.columns = ['productName',*query.split(',')]
+    resjson = {
+        "msg":'查询成功',
+        "info":{
+            "list":df.to_dict(orient="records"),
+            'pname':name
+        },
+        "code":200,
+        "flag":True
+    }
+    return jsonify(resjson)
+
