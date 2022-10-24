@@ -169,8 +169,7 @@ def getWSQApi():
     name = request.args.get('name')
     query = request.args.get('query')
     data = w.wsq(name, query)
-    print(data)
-    if(data==[['WPF: No Data.']]):
+    if(data==[['WSQ: No Data.']]):
         data = []
     l = data.Data
     l.insert(0,data.Codes)
@@ -254,8 +253,8 @@ def getWPDApi():
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
     connectWind()
-    data = w.wpd(name, query,startDate,endDate,view).Data
-    if(data == [['WPD: Server no response!.']]):
+    data = w.wpd(name, query,startDate,endDate,view)
+    if(data.Data == [['WPD: Server no response!.']]):
         resjson = {
         "msg":'请重试',
         "code":500,
@@ -264,7 +263,8 @@ def getWPDApi():
     if(data==[['WPD: No Data.']]):
         df = pd.DataFrame(data=[])
     else:
-        df = pd.DataFrame(data=data).T
+        print(data)
+        df = pd.DataFrame(data=data.Data).T
         df.insert(0, 'productName', name)
         df.columns = ['productName',*query.split(',')]
     resjson = {
