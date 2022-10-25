@@ -1,11 +1,14 @@
+from cmath import log
 from datetime import datetime
+import functools
 from main import connectWind
 from WindPy import w
 import pandas as pd
 import utils
-from utils import formateDate, getEngine
+from utils import formateDate
 from flask import Flask,request,jsonify
 from rich.console import Console
+import jwt
 
 console = Console(color_system="256")
 
@@ -13,15 +16,37 @@ sectorcode = '1'
 
 console.print(f'[#5FD068]这是实时数据提取服务，通常你需要经常开着我')
 
-utils.initDB()
-connectWind()
+# utils.initDB()
+# connectWind()
 
 app = Flask(__name__)
+
+
+def jwt_auth(func):
+    @functools.wraps(func)
+    def wrapper(*args,**kwags):
+        try:
+            token = request.headers["authorization"][7:]
+            payload = jwt.decode(token,'whatispastisprologue',algorithms=["HS256"])
+            if('userid' not in payload):
+                raise '没有userid'
+        except Exception as e:
+            print(e)
+            resjson = {
+                "msg":'身份验证失败',
+                "code":500,
+                "flag":False
+            }
+            return jsonify(resjson),401
+        return func(*args,**kwags)
+    return wrapper
+    
 m = ('平湖1号','平湖2号','平湖3号')
 
 @app.route("/py/getTotalPL",methods=["GET"])
+@jwt_auth
 def getTotalPLApi():
-    name = request.args.get('name')
+    name:str = request.args.get('name')
     startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
     endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
     Merge = request.args.get('merge')
@@ -60,6 +85,7 @@ def getTotalPLApi():
     return jsonify(resjson)
 
 @app.route("/py/getWPF",methods=["GET"])
+@jwt_auth
 def getgetWPFApi():
     name = request.args.get('name')
     query = request.args.get('query')
@@ -91,6 +117,7 @@ def getgetWPFApi():
     return jsonify(resjson)
 
 @app.route("/py/getWPS",methods=["GET"])
+@jwt_auth
 def getWPSApi():
     name = request.args.get('name')
     query = request.args.get('query')
@@ -121,6 +148,7 @@ def getWPSApi():
     return jsonify(resjson)
 
 @app.route("/py/getTdays",methods=["GET"])
+@jwt_auth
 def getTDays():
     startDate = request.args.get('startDate')
     endDate = request.args.get('endDate')
@@ -136,6 +164,7 @@ def getTDays():
     return jsonify(resjson)
 
 @app.route("/py/getPosition",methods=["GET"])
+@jwt_auth
 def getPositionApi():
     name = request.args.get('name')
     endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
@@ -165,6 +194,7 @@ def getPositionApi():
 
 # 实时行情
 @app.route("/py/getWSQ",methods=["GET"])
+@jwt_auth
 def getWSQApi():
     name = request.args.get('name')
     query = request.args.get('query')
@@ -187,6 +217,7 @@ def getWSQApi():
     return jsonify(resjson)
 
 @app.route("/py/getNav",methods=["GET"])
+@jwt_auth
 def getNavApi():
     name = request.args.get('name')
     startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
@@ -219,6 +250,7 @@ def getNavApi():
 
 # 日期序列
 @app.route("/py/getWSD",methods=["GET"])
+@jwt_auth
 def getWSDApi():
     names = request.args.get('names')
     # startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
@@ -246,6 +278,7 @@ def getWSDApi():
 
 # 运营报表
 @app.route("/py/getWPD",methods=["GET"])
+@jwt_auth
 def getWPDApi():
     name = request.args.get('name')
     query = request.args.get('query')
