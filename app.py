@@ -16,8 +16,8 @@ sectorcode = '1'
 
 console.print(f'[#5FD068]这是实时数据提取服务，通常你需要经常开着我')
 
-# utils.initDB()
-# connectWind()
+utils.initDB()
+connectWind()
 
 app = Flask(__name__)
 
