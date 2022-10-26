@@ -25,19 +25,19 @@ app = Flask(__name__)
 def jwt_auth(func):
     @functools.wraps(func)
     def wrapper(*args,**kwags):
-        try:
-            token = request.headers["authorization"][7:]
-            payload = jwt.decode(token,'whatispastisprologue',algorithms=["HS256"])
-            if('userid' not in payload):
-                raise '没有userid'
-        except Exception as e:
-            print(e)
-            resjson = {
-                "msg":'身份验证失败',
-                "code":500,
-                "flag":False
-            }
-            return jsonify(resjson),401
+        # try:
+        #     token = request.headers["authorization"][7:]
+        #     payload = jwt.decode(token,'whatispastisprologue',algorithms=["HS256"])
+        #     if('userid' not in payload):
+        #         raise '没有userid'
+        # except Exception as e:
+        #     print(e)
+        #     resjson = {
+        #         "msg":'身份验证失败',
+        #         "code":500,
+        #         "flag":False
+        #     }
+        #     return jsonify(resjson),401
         return func(*args,**kwags)
     return wrapper
     
