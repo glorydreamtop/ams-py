@@ -9,6 +9,7 @@ from utils import formateDate
 from flask import Flask,request,jsonify
 from rich.console import Console
 import jwt
+import re
 
 console = Console(color_system="256")
 
@@ -86,7 +87,7 @@ def getTotalPLApi():
 
 @app.route("/py/getWPF",methods=["GET"])
 @jwt_auth
-def getgetWPFApi():
+def getWPFApi():
     name = request.args.get('name')
     query = request.args.get('query')
     view = request.args.get('view')
@@ -163,35 +164,6 @@ def getTDays():
     }
     return jsonify(resjson)
 
-@app.route("/py/getPosition",methods=["GET"])
-@jwt_auth
-def getPositionApi():
-    name = request.args.get('name')
-    endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
-    data = w.wpf(name, "Position,Trading",f"view=AMS;startDate={endDate};endDate={endDate};Currency=CNY;sectorcode=1;displaymode=1;AmountUnit=0;Merge=N").Data
-    if(data==[['WPF: No Data.']]):
-        data = []
-    df_ = pd.DataFrame(data=data)
-    
-    if(df_.empty):
-        data = []
-    df = df_.T.drop(axis=1,columns=[0])
-    df.insert(0, 'pname', name)
-    df.columns = ['pname','code','name','value','trading']
-    res = df[df['trading'].isin(['股票','期货'])]
-    res['date'] = endDate
-    resjson = {
-        "msg":'查询成功',
-        "info":{
-            "list":res.to_dict(orient="records"),
-            "date":request.args.get('endDate'),
-            'pname':name
-        },
-        "code":200,
-        "flag":True
-    }
-    return jsonify(resjson)
-
 # 实时行情
 @app.route("/py/getWSQ",methods=["GET"])
 @jwt_auth
@@ -204,43 +176,37 @@ def getWSQApi():
     l = data.Data
     l.insert(0,data.Codes)
     l = pd.DataFrame(data=l).T
-    l.columns = ['code','value']
+    l.columns = ['code',*query.split(',')]
     resjson = {
         "msg":'查询成功',
         "info":{
             "list":l.to_dict(orient="records"),
-            "date":request.args.get('endDate'),
         },
         "code":200,
         "flag":True
     }
     return jsonify(resjson)
 
-@app.route("/py/getNav",methods=["GET"])
+# 数据集
+@app.route("/py/getWSET",methods=["GET"])
 @jwt_auth
-def getNavApi():
-    name = request.args.get('name')
-    startDate = utils.formateDate(datetime.strptime(request.args.get('startDate'),'%Y-%m-%d'))
-    endDate = utils.formateDate(datetime.strptime(request.args.get('endDate'),'%Y-%m-%d'))
+def getWSETApi():
     connectWind()
-    query = "Nav,Nav_Acc,Return_w,Return_m,Return_q,Return_y,Return_std,NetAsset"
-    console.print(f'实时查询{name},{query}数据，{startDate}到{endDate}')
-    data = w.wps(name, query,f"view=AMS;startDate={startDate};endDate={endDate};Currency=CNY;fee=1").Data
-    
-    if(data==[['WPF: No Data.']]):
+    name = request.args.get('name')
+    query = request.args.get('query')
+    data = w.wset(name, query).Data
+    if(data==[['WSET: No Data.']]):
         data = []
-    df_ = pd.DataFrame(data=data)
-    if(df_.empty):
+    data = pd.DataFrame(data=data).T
+    print(data)
+    if(data.empty):
         data = []
-    arr = utils.flat([name,utils.flat(data),startDate,endDate])
-    data = pd.DataFrame(data=arr).T
-    data.columns=['name','Nav','Nav_Acc','Return_w','Return_m','Return_q','Return_y','Return_std','NetAsset','startDate','endDate']
+    print(query)
+    data.columns=re.search(r"field=(.+)",query,re.M|re.I).group(1).split(",")
     resjson = {
         "msg":'查询成功',
         "info":{
             "list":data.to_dict(orient="records"),
-            "startDate":request.args.get('startDate'),
-            "endDate":request.args.get('endDate'),
             'pname':name
         },
         "code":200,
