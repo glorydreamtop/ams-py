@@ -192,9 +192,9 @@ def getWSQApi():
 @jwt_auth
 def getWSETApi():
     connectWind()
-    name = request.args.get('name')
+    names = request.args.get('names')
     query = request.args.get('query')
-    data = w.wset(name, query).Data
+    data = w.wset(names, query).Data
     if(data==[['WSET: No Data.']]):
         data = []
     data = pd.DataFrame(data=data).T
@@ -207,7 +207,6 @@ def getWSETApi():
         "msg":'查询成功',
         "info":{
             "list":data.to_dict(orient="records"),
-            'pname':name
         },
         "code":200,
         "flag":True
