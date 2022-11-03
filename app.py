@@ -168,9 +168,9 @@ def getTDays():
 @app.route("/py/getWSQ",methods=["GET"])
 @jwt_auth
 def getWSQApi():
-    name = request.args.get('name')
+    names = request.args.get('names')
     query = request.args.get('query')
-    data = w.wsq(name, query)
+    data = w.wsq(names, query)
     if(data==[['WSQ: No Data.']]):
         data = []
     l = data.Data
