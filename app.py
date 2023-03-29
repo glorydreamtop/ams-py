@@ -93,6 +93,7 @@ def getWPFApi():
     view = request.args.get('view')
     connectWind()
     data = w.wpf(name, query,view).Data
+    print(data)
     if(data == [['WPF: Server no response!.']]):
         resjson = {
         "msg":'请重试',
