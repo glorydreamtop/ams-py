@@ -92,8 +92,6 @@ def getWPFApi():
     view = request.args.get('view')
     connectWind()
     data = w.wpf(name, query,view).Data
-    print(name, query,view)
-    print(data)
     if(data == [['WPF: Server no response!.']]):
         resjson = {
         "msg":'请重试',
@@ -206,10 +204,8 @@ def getWSETApi():
     if(data==[['WSET: No Data.']]):
         data = []
     data = pd.DataFrame(data=data).T
-    print(data)
     if(data.empty):
         data = []
-    print(query)
     data.columns=re.search(r"field=(.+)",query,re.M|re.I).group(1).split(",")
     resjson = {
         "msg":'查询成功',
