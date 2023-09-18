@@ -6,7 +6,7 @@ from WindPy import w
 import pandas as pd
 import utils
 from utils import formateDate
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,Response
 from rich.console import Console
 import jwt
 import re
@@ -17,8 +17,7 @@ sectorcode = '1'
 
 console.print(f'[#5FD068]这是实时数据提取服务，通常你需要经常开着我')
 
-utils.initDB()
-connectWind()
+
 
 app = Flask(__name__)
 
@@ -279,3 +278,12 @@ def getWPDApi():
     }
     return jsonify(resjson)
 
+# 是否在线，windpy是否可用
+@app.route("/py/online",methods=["GET"])
+@jwt_auth
+def getOnlineStateApi():
+    return Response(status=204)
+    
+if __name__=='__main__':
+    utils.initDB()
+    connectWind()
