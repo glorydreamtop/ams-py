@@ -137,6 +137,7 @@ def getWPSApi():
             df = pd.DataFrame(data=data).T
             df.insert(0, 'name', name)
             df.columns = ['name',*query.split(',')]
+            print(df.to_dict(orient="records"))
         except Exception as e:
             resjson = {
                 "msg":data,
