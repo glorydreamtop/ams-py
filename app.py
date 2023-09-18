@@ -284,6 +284,5 @@ def getWPDApi():
 def getOnlineStateApi():
     return Response(status=204)
     
-if __name__=='__main__':
-    utils.initDB()
-    connectWind()
+utils.initDB()
+connectWind()
