@@ -131,13 +131,20 @@ def getWPSApi():
         "msg":'请重试',
         "code":500,
         "flag":False
-    }
+        }
     if(data==[['WPS: No Data.']]):
         df = pd.DataFrame(data=[])
     else:
-        df = pd.DataFrame(data=data).T
-        df.insert(0, 'name', name)
-        df.columns = ['name',*query.split(',')]
+        try:
+            df = pd.DataFrame(data=data).T
+            df.insert(0, 'name', name)
+            df.columns = ['name',*query.split(',')]
+        except Exception as e:
+            resjson = {
+                "msg":data,
+                "code":500,
+                "flag":False
+            }
     resjson = {
         "msg":'查询成功',
         "info":{
