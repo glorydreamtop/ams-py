@@ -1,7 +1,7 @@
 from cmath import log
 from datetime import datetime
 import functools
-from main import connectWind
+from main import connectWind,reconnectWind
 from WindPy import w
 import pandas as pd
 import utils
@@ -291,6 +291,13 @@ def getWPDApi():
 def getOnlineStateApi():
     logging.disable(logging.CRITICAL)
     return Response(status=204)
-    
+
+# 重连windpy
+@app.route("/py/restart",methods=["GET"])
+@jwt_auth
+def getOnlineStateApi():
+    reconnectWind()
+    return Response(status=204)
+
 utils.initDB()
 connectWind()

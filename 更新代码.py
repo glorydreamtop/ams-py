@@ -4,18 +4,23 @@ import shutil
 import zipfile
 import tempfile
 from rich.console import Console
+from retrying import retry
 
 console = Console(color_system="256")
 
+@retry(stop_max_attempt_number=3, wait_fixed=1000)
 def get_data():
     with console.status('[#37E2D5]更新代码中...') as s:
         url = "https://github.com/glorydreamtop/ams-py/archive/refs/heads/main.zip"
-        response = requests.get(url)
-    return url, response.content
+        response = requests.get(url,timeout=5)
+        if response.status_code == 200:
+            return response.content
+        else:
+            raise Exception(f"更新代码失败")
  
  
 if __name__ == '__main__':
-    url, data = get_data()  # data为byte字节
+    data = get_data()  # data为byte字节
  
     _tmp_file = tempfile.TemporaryFile()  # 创建临时文件
  

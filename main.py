@@ -22,6 +22,10 @@ def connectWind():
             wconnected =  w.isconnected()
         print('Wind服务链接成功' if wconnected==True else 'Wind服务链接失败')
 
+def reconnectWind():
+    w.stop()
+    connectWind()
+
 PortfolioNames = ('平湖1号','平湖2号','平湖3号','众诚一号','嘉佑一号','闰诚1号','青诚一号','百川量化一号')
 
 
