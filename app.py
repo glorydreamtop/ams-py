@@ -295,7 +295,7 @@ def getOnlineStateApi():
 # 重连windpy
 @app.route("/py/restart",methods=["GET"])
 @jwt_auth
-def getOnlineStateApi():
+def restartApi():
     reconnectWind()
     return Response(status=204)
 
