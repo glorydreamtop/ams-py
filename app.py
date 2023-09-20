@@ -10,6 +10,7 @@ from flask import Flask,request,jsonify,Response
 from rich.console import Console
 import jwt
 import re
+import logging
 
 console = Console(color_system="256")
 
@@ -38,6 +39,7 @@ def jwt_auth(func):
         #         "flag":False
         #     }
         #     return jsonify(resjson),401
+        logging.disable(logging.NOTSET)
         return func(*args,**kwags)
     return wrapper
     
@@ -92,6 +94,7 @@ def getWPFApi():
     view = request.args.get('view')
     connectWind()
     data = w.wpf(name, query,view).Data
+
     if(data == [['WPF: Server no response!.']]):
         resjson = {
         "msg":'请重试',
@@ -137,8 +140,9 @@ def getWPSApi():
             df = pd.DataFrame(data=data).T
             df.insert(0, 'name', name)
             df.columns = ['name',*query.split(',')]
-            print(df.to_dict(orient="records"))
         except Exception as e:
+            print(e)
+            print(data)
             resjson = {
                 "msg":data,
                 "code":500,
@@ -284,8 +288,8 @@ def getWPDApi():
 
 # 是否在线，windpy是否可用
 @app.route("/py/online",methods=["GET"])
-@jwt_auth
 def getOnlineStateApi():
+    logging.disable(logging.CRITICAL)
     return Response(status=204)
     
 utils.initDB()

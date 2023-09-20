@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker,declarative_base
 from WindPy import w
 import requests
 import json
+import time
 from rich.console import Console
 
 Base = declarative_base()
@@ -133,3 +134,12 @@ def robot(msg=""):
             "content": f'【{timestr}】\n{msg}'
         }
     }))
+    
+# 使用 time 模块来测量代码执行时间
+def start_timer():
+    return time.time()
+
+def end_timer(start_time):
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    return elapsed_time
